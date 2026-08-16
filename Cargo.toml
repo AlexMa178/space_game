@@ -1,0 +1,11 @@
+[package]
+name = "space_game"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+imageable_tile_grid = { version = "0.1.8", features = [ "ggez" ] }
+generic_discrete_2d_rotations = "0.1.4"
+ggez = "0.10.0"
+ron = "0.12.2"
+serde = { version = "1.0.229", features = ["derive"] }

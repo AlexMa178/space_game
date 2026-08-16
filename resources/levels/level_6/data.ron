@@ -1,0 +1,5 @@
+LevelData(
+    player_init: (38, 5),
+    portal: (31, 15),
+    black_holes: [ (23, 9), (8, 29), (25, 29), (29, 25) ],
+)
