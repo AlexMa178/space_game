@@ -166,10 +166,11 @@ impl Player {
             };
 
             canvas.draw(PLAYER_IMAGE.get(), PDPTileBuilder::new(TILE_PIXELS)
-                .pixel_dest(self.pos + TILE_PIXELS as i32 / 2 - camera)
+                .pixel_dest(self.pos - camera)
                 .tile_atlas_rect(atlas_rect)
                 .angle(rotation)
-                .tile_pivot(rot_pivot_tile)
+                .tile_anchor(rot_pivot_tile)
+                .tile_pivot(rot_pivot_tile, true, true)
                 .z(2)
             .build());
 
