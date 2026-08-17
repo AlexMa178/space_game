@@ -1,15 +1,15 @@
 use std::collections::HashSet;
 
-use ggez::graphics::Canvas;
-
 use ggez::winit::keyboard::KeyCode;
 
-use generic_discrete_2d_rotations::{ R4, R8, Rot, RotDir, RotFrom };
+use generic_discrete_2d_rotations::{ A4, A8, Angle, Ray, RotDir, RotFrom };
 
+use ggez_pixel_canvas::{ PDPTileBuilder, PixelCanvas };
+
+use crate::TILE_PIXELS;
 use crate::animated::BlackHole;
 use crate::level::{CollisionType, LevelCollision};
 use crate::scale::{ DPixelVector, PositionAndDimension, TTileDimension, TTileRect, TTileVector, ToPixel, WPixelRect, WPixelVector, WTileDimension, WTileVector };
-use crate::pixel_draw::{ self, PixelDrawParams };
 use crate::assets::{ PLAYER_IMAGE };
 use crate::sounds::AllSounds;
 
@@ -19,7 +19,7 @@ pub const PLAYER_DECELERATION: i32 = 1;
 pub struct Player {
     pos: WPixelVector,
     vel: DPixelVector,
-    rot: Rot<8>,
+    dir: Ray<8>,
     fire: bool,
 }
 impl Player {
@@ -29,7 +29,7 @@ impl Player {
         Self {
             pos: initial_pos.to_pixel(),
             vel: DPixelVector::ZERO,
-            rot: Rot::R8_0,
+            dir: Ray::IY_UP_8,
             fire: false,
         }
 
@@ -53,12 +53,12 @@ impl Player {
         let maybe_normal_dir = collisions.iter().find_map(|c| if let CollisionType::Bouncy { normal_dir } = c { Some(*normal_dir) } else { None });
         if let Some(normal_dir) = maybe_normal_dir {
             sounds.play_bounce();
-            self.rot = normal_dir.embed_as::<8>();
-            match normal_dir.matchable_4() {
-                R4::D0   => self.vel.y = -self.vel.y.abs(),
-                R4::D90  => self.vel.x =  self.vel.x.abs(),
-                R4::D180 => self.vel.y =  self.vel.y.abs(),
-                R4::D270 => self.vel.x = -self.vel.x.abs(),
+            self.dir = normal_dir.embed_as::<8>();
+            match normal_dir.rot(RotFrom::NegY, RotDir::CounterClockwise).matchable_4() {
+                A4::D0   => self.vel.y = -self.vel.y.abs(),
+                A4::D90  => self.vel.x =  self.vel.x.abs(),
+                A4::D180 => self.vel.y =  self.vel.y.abs(),
+                A4::D270 => self.vel.x = -self.vel.x.abs(),
             }
         }
 
@@ -70,10 +70,10 @@ impl Player {
         let v = d as i32 - u as i32;
         let h = r as i32 - l as i32;
 
-        let maybe_rot = Rot::<8>::from_signs(RotFrom::NegY, RotDir::CounterClockwise, h.cmp(&0), v.cmp(&0));
-        self.fire = maybe_rot.is_some();
-        if let Some(rot) = maybe_rot {
-            self.rot = rot;
+        let maybe_dir = Ray::<8>::from_signs(h.cmp(&0), v.cmp(&0));
+        self.fire = maybe_dir.is_some();
+        if let Some(dir) = maybe_dir {
+            self.dir = dir;
         };
 
         if subframe_counter == 0 {
@@ -138,43 +138,40 @@ impl Player {
 
     }
 
-    pub fn draw(&self, pixel_size: u8, canvas: &mut Canvas, camera: WPixelVector) {
+    pub fn draw(&self, canvas: &mut PixelCanvas, camera: WPixelVector) {
 
-        let atlas_pos = match self.rot.matchable_8() {
-            R8::D0   => TTileVector::new(1, 0),
-            R8::D45  => TTileVector::new(2, 0),
-            R8::D90  => TTileVector::new(2, 1),
-            R8::D135 => TTileVector::new(2, 2),
-            R8::D180 => TTileVector::new(1, 2),
-            R8::D225 => TTileVector::new(0, 2),
-            R8::D270 => TTileVector::new(0, 1),
-            R8::D315 => TTileVector::new(0, 0),
+        let atlas_pos = match self.dir.rot(RotFrom::NegY, RotDir::CounterClockwise).matchable_8() {
+            A8::D0   => TTileVector::new(1, 0),
+            A8::D45  => TTileVector::new(2, 0),
+            A8::D90  => TTileVector::new(2, 1),
+            A8::D135 => TTileVector::new(2, 2),
+            A8::D180 => TTileVector::new(1, 2),
+            A8::D225 => TTileVector::new(0, 2),
+            A8::D270 => TTileVector::new(0, 1),
+            A8::D315 => TTileVector::new(0, 0),
         };
 
-        pixel_draw::pixel_draw(pixel_size, canvas, PLAYER_IMAGE.get(), PixelDrawParams {
-            camera,
-            atlas_section: TTileRect::from_pos_dim(atlas_pos, TTileDimension::ONE).into(),
-            pos: self.pos,
-            z: 2,
-            ..Default::default()
-        });
+        canvas.draw(PLAYER_IMAGE.get(), PDPTileBuilder::new(TILE_PIXELS)
+            .pixel_dest(self.pos - camera)
+            .tile_atlas_rect(TTileRect::from_pos_dim(atlas_pos, TTileDimension::ONE))
+            .z(2)
+        .build());
 
         if self.fire {
 
-            let (atlas_rect, rot_pivot_tile, rotation) = if let Some(rot_4) = self.rot.split_as::<4>() {
-                (TTileRect::new(3, 0, 1, 2), TTileVector::new(0, 0), rot_4)
+            let (atlas_rect, rot_pivot_tile, rotation) = if let Some(rot_4) = self.dir.split_as::<4>() {
+                (TTileRect::new(3, 0, 1, 2), TTileVector::new(0, 0), rot_4.rot(RotFrom::NegY, RotDir::CounterClockwise))
             } else {
-                (TTileRect::new(4, 0, 2, 2), TTileVector::new(1, 0), (self.rot - Rot::R8_45).split_as::<4>().unwrap())
+                (TTileRect::new(4, 0, 2, 2), TTileVector::new(1, 0), (self.dir.rot(RotFrom::NegY, RotDir::CounterClockwise) - Angle::A8_45).split_as::<4>().unwrap())
             };
 
-            pixel_draw::pixel_draw(pixel_size, canvas, PLAYER_IMAGE.get(), PixelDrawParams {
-                camera,
-                atlas_section: atlas_rect.into(),
-                pos: self.pos,
-                rot_pivot_tile,
-                rotation,
-                z: 2,
-            });
+            canvas.draw(PLAYER_IMAGE.get(), PDPTileBuilder::new(TILE_PIXELS)
+                .pixel_dest(self.pos + TILE_PIXELS as i32 / 2 - camera)
+                .tile_atlas_rect(atlas_rect)
+                .angle(rotation)
+                .tile_pivot(rot_pivot_tile)
+                .z(2)
+            .build());
 
         }
 

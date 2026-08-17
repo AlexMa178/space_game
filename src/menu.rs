@@ -1,14 +1,14 @@
 use ggez::Context;
-use ggez::graphics::{ Canvas, GraphicsContext };
+use ggez::graphics::{ GraphicsContext };
 
 use ggez::winit::keyboard::KeyCode;
 
+use ggez_pixel_canvas::{ PixelCanvas, PixelDrawParams };
 use imageable_tile_grid::{ CharTile, MultiTile, Tile, TileGrid };
 
 use crate::sounds::AllSounds;
 use crate::{ FULL_FRAME_FPS, NUM_LEVELS, SCREEN_TILES };
 use crate::scale::{ ToPixel, ToScreen };
-use crate::pixel_draw::{ self, PixelDrawParams };
 use crate::assets::{ LETTERS_IMAGE };
 
 pub type UIGrid = TileGrid::<LetterTile, {SCREEN_TILES.x as usize}, {SCREEN_TILES.y as usize}>;
@@ -159,7 +159,7 @@ impl TitleMenu {
 
     }
 
-    pub fn draw(&self, sounds: &AllSounds, pixel_size: u8, number_subframes: u8, canvas: &mut Canvas, gfx: &mut GraphicsContext) {
+    pub fn draw(&self, sounds: &AllSounds, pixel_size: u8, number_subframes: u8, canvas: &mut PixelCanvas, gfx: &mut GraphicsContext) {
 
         let s = self.selection;
         let ps = pixel_size;
@@ -187,7 +187,7 @@ impl TitleMenu {
             .build();
 
         let composed = text_grid.compose_image_ggez(gfx, LETTERS_IMAGE.get_cloned()).unwrap();
-        pixel_draw::pixel_draw(ps, canvas, &composed, PixelDrawParams::default());
+        canvas.draw(&composed, PixelDrawParams::<i32>::default());
 
     }
 
@@ -237,7 +237,7 @@ impl LevelSelectMenu {
 
     }
 
-    pub fn draw(&self, pixel_size: u8, canvas: &mut Canvas, gfx: &mut GraphicsContext, progress: &Vec<u64>) {
+    pub fn draw(&self, canvas: &mut PixelCanvas, gfx: &mut GraphicsContext, progress: &Vec<u64>) {
 
         let s = self.selection;
         let p = progress.len().min(NUM_LEVELS - 1) as u8;
@@ -268,7 +268,7 @@ impl LevelSelectMenu {
         }
 
         let composed = text_grid.compose_image_ggez(gfx, LETTERS_IMAGE.get_cloned()).unwrap();
-        pixel_draw::pixel_draw(pixel_size, canvas, &composed, PixelDrawParams::default());
+        canvas.draw(&composed, PixelDrawParams::<i32>::default());
 
     }
 

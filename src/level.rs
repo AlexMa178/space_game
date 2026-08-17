@@ -1,18 +1,19 @@
 use std::collections::HashSet;
 
-use ggez::graphics::{ Canvas, Image };
+use ggez::graphics::Image;
 
 use serde::Deserialize;
 
-use generic_discrete_2d_rotations::Rot;
+use generic_discrete_2d_rotations::Ray;
+
+use ggez_pixel_canvas::{ PDPBuilder, PixelCanvas };
 
 use crate::TILE_PIXELS;
 use crate::scale::{ PositionAndDimension, WPixelRect, WPixelVector, WTileDimension, WTileVector };
-use crate::pixel_draw::{ self, PixelDrawParams };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CollisionType {
-    Empty, Wall, Bouncy { normal_dir: Rot<4> }
+    Empty, Wall, Bouncy { normal_dir: Ray<4> }
 }
 impl CollisionType {
 
@@ -20,10 +21,10 @@ impl CollisionType {
         match s {
             "1" => Self::Empty,
             "2" => Self::Wall,
-            "3" => Self::Bouncy { normal_dir: Rot::R4_0   },
-            "4" => Self::Bouncy { normal_dir: Rot::R4_90  },
-            "5" => Self::Bouncy { normal_dir: Rot::R4_180 },
-            "6" => Self::Bouncy { normal_dir: Rot::R4_270 },
+            "3" => Self::Bouncy { normal_dir: Ray::IY_UP_4    },
+            "4" => Self::Bouncy { normal_dir: Ray::IY_RIGHT_4 },
+            "5" => Self::Bouncy { normal_dir: Ray::IY_DOWN_4  },
+            "6" => Self::Bouncy { normal_dir: Ray::IY_LEFT_4  },
             a => panic!("invalid collision data, found \"{a}\""),
         }
     }
@@ -50,8 +51,8 @@ impl LevelCollision {
 
         let min_pixel = obj_rect.pos();
         let max_pixel = obj_rect.pos() + obj_rect.dim();
-        let min = (min_pixel / TILE_PIXELS).as_u8vec2();
-        let max = (max_pixel / TILE_PIXELS).as_u8vec2() + (max_pixel % TILE_PIXELS).map(|i| (i != 0) as i32).as_u8vec2();
+        let min = (min_pixel / TILE_PIXELS as i32).as_u8vec2();
+        let max = (max_pixel / TILE_PIXELS as i32).as_u8vec2() + (max_pixel % TILE_PIXELS as i32).map(|i| (i != 0) as i32).as_u8vec2();
         let positions = ((min.x)..(max.x)).flat_map(|x| ((min.y)..(max.y)).map(move |y| WTileVector::new(x, y))).collect::<Vec<_>>();
 
         positions.into_iter().map(|pos| self.at(pos)).collect()
@@ -95,8 +96,8 @@ impl Level {
         }
     }
 
-    pub fn draw(&self, pixel_size: u8, canvas: &mut Canvas, camera: WPixelVector) {
-        pixel_draw::pixel_draw(pixel_size, canvas, &self.tiles, PixelDrawParams { camera, z: 1, ..Default::default() });
+    pub fn draw(&self, canvas: &mut PixelCanvas, camera: WPixelVector) {
+        canvas.draw(&self.tiles, PDPBuilder::new().dest(-camera).z(1).build());
     }
 
 }

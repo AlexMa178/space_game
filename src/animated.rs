@@ -1,8 +1,7 @@
-use ggez::graphics::Canvas;
+use ggez_pixel_canvas::{ PDPTileBuilder, PixelCanvas };
 
 use crate::TILE_PIXELS;
 use crate::scale::{ DPixelVector, DTileVector, PositionAndDimension, TTileRect, ToPixel, WPixelRect, WPixelVector, WTileVector };
-use crate::pixel_draw::{ self, PixelDrawParams };
 use crate::assets::{BLACK_HOLE_IMAGE, EXPLOSION_IMAGE, PORTAL_COLLAPSE_IMAGE, PORTAL_IMAGE};
 
 pub struct Explosion {
@@ -35,17 +34,15 @@ impl Explosion {
 
     }
 
-    pub fn draw(&self, pixel_size: u8, canvas: &mut Canvas, camera: WPixelVector) {
+    pub fn draw(&self, canvas: &mut PixelCanvas, camera: WPixelVector) {
 
         let atlas_rect = TTileRect::new(self.frame * 3, 0, 3, 3);
 
-        pixel_draw::pixel_draw(pixel_size, canvas, EXPLOSION_IMAGE.get(), PixelDrawParams {
-            camera,
-            atlas_section: atlas_rect.into(),
-            pos: self.pos,
-            z: 3,
-            ..Default::default()
-        });
+        canvas.draw(EXPLOSION_IMAGE.get(), PDPTileBuilder::new(TILE_PIXELS)
+            .pixel_dest(self.pos - camera)
+            .tile_atlas_rect(atlas_rect)
+            .z(3)
+        .build());
 
     }
 
@@ -105,7 +102,7 @@ impl Portal {
 
     }
 
-    pub fn draw(&self, pixel_size: u8, canvas: &mut Canvas, camera: WPixelVector) {
+    pub fn draw(&self, canvas: &mut PixelCanvas, camera: WPixelVector) {
 
         let (image, atlas_rect, pos) = match self.anim {
             PortalAnimation::Idle { frame } => {
@@ -119,13 +116,11 @@ impl Portal {
             }
         };
 
-        pixel_draw::pixel_draw(pixel_size, canvas, image, PixelDrawParams {
-            camera,
-            atlas_section: atlas_rect.into(),
-            pos: pos.to_pixel(),
-            z: 3,
-            ..Default::default()
-        });
+        canvas.draw(image, PDPTileBuilder::new(TILE_PIXELS)
+            .pixel_dest(pos.to_pixel() - camera)
+            .tile_atlas_rect(atlas_rect)
+            .z(3)
+        .build());
 
     }
 
@@ -173,17 +168,15 @@ impl BlackHole {
         
     }
 
-    pub fn draw(&self, pixel_size: u8, canvas: &mut Canvas, camera: WPixelVector) {
+    pub fn draw(&self, canvas: &mut PixelCanvas, camera: WPixelVector) {
 
         let atlas_rect = TTileRect::new(self.frame * 3, 0, 3, 3);
 
-        pixel_draw::pixel_draw(pixel_size, canvas, BLACK_HOLE_IMAGE.get(), PixelDrawParams {
-            camera,
-            atlas_section: atlas_rect.into(),
-            pos: (self.center_pos - 1).to_pixel(),
-            z: 3,
-            ..Default::default()
-        });
+        canvas.draw(BLACK_HOLE_IMAGE.get(), PDPTileBuilder::new(TILE_PIXELS)
+            .pixel_dest((self.center_pos - 1).to_pixel() - camera)
+            .tile_atlas_rect(atlas_rect)
+            .z(3)
+        .build());
 
     }
 

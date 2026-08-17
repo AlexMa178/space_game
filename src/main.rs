@@ -1,7 +1,6 @@
 #![windows_subsystem = "windows"]
 
 mod scale;
-mod pixel_draw;
 mod assets;
 mod player;
 mod animated;
@@ -19,7 +18,6 @@ use ggez::context::{ Context, ContextBuilder };
 use ggez::event::{ self, EventHandler };
 use ggez::error::{ GameError, GameResult };
 use ggez::conf::WindowSetup;
-use ggez::graphics::{ Canvas, Color, Sampler };
 use ggez::input::keyboard::KeyInput;
 
 use ggez::winit::keyboard::{ KeyCode, PhysicalKey };
@@ -29,7 +27,8 @@ use ggez::winit::window::WindowButtons;
 
 use serde::{ Deserialize, Serialize };
 
-use crate::pixel_draw::PixelDrawParams;
+use ggez_pixel_canvas::{PixelCanvas, PixelDrawParams};
+
 use crate::scale::{ ToPixel, ToScreen, WPixelVector, WTileDimension };
 use crate::assets::{ BACKGROUND_IMAGE, ICON, INITIAL_GAME_SAVE, LETTERS_IMAGE, LEVELS };
 use crate::player::Player;
@@ -39,7 +38,7 @@ use crate::menu::{ LSMUpdateResponse, LetterTile, LevelSelectMenu, TitleMenu, UI
 use crate::sounds::AllSounds;
 
 pub const FULL_FRAME_FPS: u32 = 5;
-pub const TILE_PIXELS: i32 = 8;
+pub const TILE_PIXELS: u8 = 8;
 pub const SCREEN_TILES: WTileDimension = WTileDimension::new(32, 18);
 pub const NUM_LEVELS: usize = 8;
 
@@ -338,39 +337,37 @@ impl EventHandler for Game {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
 
-        let ps = self.pixel_size;
         let ns = self.num_subframes;
 
-        let mut canvas = Canvas::from_frame(ctx, Color::BLACK);
-        canvas.set_sampler(Sampler::nearest_clamp());
+        let mut canvas = PixelCanvas::new_frame(ctx, self.pixel_size);
 
-        pixel_draw::pixel_draw(ps, &mut canvas, BACKGROUND_IMAGE.get(), PixelDrawParams::default());
+        canvas.draw(BACKGROUND_IMAGE.get(), PixelDrawParams::<i32>::default());
 
         match &self.state {
             State::TitleMenu { menu } => {
 
-                menu.draw(&self.sounds, ps, ns, &mut canvas, &mut ctx.gfx);
+                menu.draw(&self.sounds, self.pixel_size, ns, &mut canvas, &mut ctx.gfx);
 
             },
             State::LevelSelectMenu { menu } => {
 
-                menu.draw(ps, &mut canvas, &mut ctx.gfx, &self.progress);
+                menu.draw(&mut canvas, &mut ctx.gfx, &self.progress);
 
             }
             State::Playing { state: PlayingState { maybe_player, maybe_explosion, portal, black_holes, level_id, camera, .. } } => {
                 
                 let level = LEVELS[ *level_id ].get();
 
-                level.draw(ps, &mut canvas, *camera);
+                level.draw(&mut canvas, *camera);
                 if let PlayerExistence::Exists { player, .. } = maybe_player {
-                    player.draw(ps, &mut canvas, *camera);
+                    player.draw(&mut canvas, *camera);
                 }
-                portal.draw(ps, &mut canvas, *camera);
+                portal.draw(&mut canvas, *camera);
                 if let Some(explosion) = maybe_explosion {
-                    explosion.draw(ps, &mut canvas, *camera);
+                    explosion.draw(&mut canvas, *camera);
                 }
                 for black_hole in black_holes {
-                    black_hole.draw(ps, &mut canvas, *camera);
+                    black_hole.draw(&mut canvas, *camera);
                 }
 
                 if let Some(time) = { match maybe_player {
@@ -382,10 +379,9 @@ impl EventHandler for Game {
                     let time_string = { let decimal = time * 10 / FULL_FRAME_FPS as u64; format!("{}.{}", decimal / 10, decimal % 10) };
                     let text_grid = UIGrid::fill(LetterTile::Empty).builder(31 - time_string.len(), 1).write(&time_string).build();
                     let composed = text_grid.compose_image_ggez(ctx, LETTERS_IMAGE.get_cloned())?;
-                    pixel_draw::pixel_draw(ps, &mut canvas, &composed, PixelDrawParams { z: 4, ..Default::default() });
+                    canvas.draw::<i32>(&composed, PixelDrawParams { z: 4, ..Default::default() });
 
                 };
-
 
             },
         }
