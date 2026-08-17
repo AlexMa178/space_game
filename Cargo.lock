@@ -788,9 +788,9 @@ dependencies = [
 
 [[package]]
 name = "ggez_pixel_canvas"
-version = "0.1.9"
+version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7d9ce166745d21d1cdb36ded57dca3b4ef83d85e2693413d9cbf8a0670e0c36"
+checksum = "9ac2e30aa05b2f79aa24cd60631ff56ad3b405d1c3c18a1df54d0ae966d58167"
 dependencies = [
  "generic_discrete_2d_rotations",
  "ggez",
