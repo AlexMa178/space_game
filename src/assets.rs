@@ -1,6 +1,5 @@
 use std::array;
 use std::marker::PhantomData;
-use std::ops::Deref;
 use std::sync::{ LazyLock, OnceLock };
 
 use ggez::audio::SoundData;
@@ -66,12 +65,6 @@ impl <T: AssetType<ValueType: Clone>> Asset<T> {
         self.get().clone()
     }
 }
-impl<T: AssetType> Deref for Asset<T> {
-    type Target = T::ValueType;
-    fn deref(&self) -> &T::ValueType {
-        self.get()
-    }
-}
 
 pub trait AssetType {
     type ValueType;
@@ -86,13 +79,13 @@ impl AssetType for Image {
 }
 impl AssetType for SoundData {
     type ValueType = Self;
-    fn load(ctx: &Context, path: &str) -> SoundData {
+    fn load(ctx: &Context, path: &str) -> Self {
         SoundData::new(ctx, path).unwrap()
     }
 }
 impl AssetType for Icon {
     type ValueType = Self;
-    fn load(ctx: &Context, path: &str) -> Icon {
+    fn load(ctx: &Context, path: &str) -> Self {
         let image = Image::from_path(ctx, path).unwrap();
         Icon::from_rgba(image.to_pixels(ctx).unwrap(), image.width(), image.height()).unwrap()
     }
