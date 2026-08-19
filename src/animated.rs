@@ -4,7 +4,7 @@ use ggez_pixel_canvas::{ PDPTileBuilder, PixelCanvas };
 
 use crate::TILE_PIXELS;
 use crate::scale::{ Pixel, Tile, ToPixel };
-use crate::assets::{BLACK_HOLE_IMAGE, EXPLOSION_IMAGE, PORTAL_COLLAPSE_IMAGE, PORTAL_IMAGE};
+use crate::assets::{ BLACK_HOLE_IMAGE, EXPLOSION_IMAGE, PORTAL_COLLAPSE_IMAGE, PORTAL_IMAGE };
 
 pub struct Explosion {
     pos: Point2<Pixel>,
@@ -40,7 +40,7 @@ impl Explosion {
 
         let atlas_rect = Rect::<Tile>::from_origin_and_size([ self.frame * 3, 0 ], [ 3, 3 ]);
 
-        canvas.draw(EXPLOSION_IMAGE.get(), PDPTileBuilder::<i32, u8>::new(TILE_PIXELS)
+        canvas.draw(EXPLOSION_IMAGE.get(), PDPTileBuilder::<Pixel, Tile>::new(TILE_PIXELS)
             .pixel_dest(self.pos - camera)
             .tile_atlas_rect(atlas_rect.to_tuple())
             .z(3)

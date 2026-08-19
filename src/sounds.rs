@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use ggez::audio::{AudioContext, SoundSource, Source};
+use ggez::audio::{ AudioContext, SoundSource, Source };
 
 use crate::assets::{ BLACK_HOLE_PULL_SFX, BOUNCE_SFX, EXPLOSION_SFX, GAME_MUSIC, LEVEL_CLEAR_SFX, MENU_CLICK_SFX, MENU_MUSIC, MENU_NAVIGATE_SFX };
 
@@ -58,7 +58,7 @@ impl AllSounds {
 
     fn change_music(&mut self, new_music: Music) {
 
-        if self.current_music == new_music { return };
+        if self.current_music == new_music { return; };
         if !self.music_muted {
             self.current_music_source().stop();
         }

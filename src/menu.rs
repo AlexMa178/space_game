@@ -1,5 +1,5 @@
 use ggez::Context;
-use ggez::graphics::{ GraphicsContext };
+use ggez::graphics::GraphicsContext;
 
 use ggez::winit::keyboard::KeyCode;
 
@@ -8,8 +8,8 @@ use imageable_tile_grid::{ CharTile, MultiTile, Tile, TileGrid };
 
 use crate::sounds::AllSounds;
 use crate::{ FULL_FRAME_FPS, NUM_LEVELS, SCREEN_TILES };
-use crate::scale::{ ToPixel, ToScreen };
-use crate::assets::{ LETTERS_IMAGE };
+use crate::scale::{ Pixel, ToPixel, ToScreen };
+use crate::assets::LETTERS_IMAGE;
 
 pub type UIGrid = TileGrid::<LetterTile, {SCREEN_TILES.width as usize}, {SCREEN_TILES.height as usize}>;
 
@@ -179,7 +179,7 @@ impl TitleMenu {
             .build();
 
         let composed = text_grid.compose_image_ggez(gfx, LETTERS_IMAGE.get_cloned()).unwrap();
-        canvas.draw(&composed, PixelDrawParams::<i32>::default());
+        canvas.draw(&composed, PixelDrawParams::<Pixel>::default());
 
     }
 
@@ -260,7 +260,7 @@ impl LevelSelectMenu {
         }
 
         let composed = text_grid.compose_image_ggez(gfx, LETTERS_IMAGE.get_cloned()).unwrap();
-        canvas.draw(&composed, PixelDrawParams::<i32>::default());
+        canvas.draw(&composed, PixelDrawParams::<Pixel>::default());
 
     }
 

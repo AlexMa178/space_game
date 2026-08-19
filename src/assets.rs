@@ -86,7 +86,7 @@ impl AssetType for SoundData {
 impl AssetType for Icon {
     type ValueType = Self;
     fn load(ctx: &Context, path: &str) -> Self {
-        let image = Image::from_path(ctx, path).unwrap();
+        let image = Image::load(ctx, path);
         Icon::from_rgba(image.to_pixels(ctx).unwrap(), image.width(), image.height()).unwrap()
     }
 }
@@ -106,9 +106,9 @@ impl AssetType for LevelCollision {
 impl AssetType for Level {
     type ValueType = Self;
     fn load(ctx: &Context, path: &str) -> Self {
-        let tiles = Image::load(ctx, &format!("{path}/tiles.png"));
-        let collision = LevelCollision::load(ctx, &format!("{path}/collision.csv"));
-        let data = Ron::<LevelData>::load(ctx, &format!("{path}/data.ron"));
+        let tiles     = Image           ::load(ctx, &format!("{path}/tiles.png"    ));
+        let collision = LevelCollision  ::load(ctx, &format!("{path}/collision.csv"));
+        let data      = Ron::<LevelData>::load(ctx, &format!("{path}/data.ron"     ));
         Level::from_file_parts(tiles, collision, data)
     }
 }

@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use ggez::graphics::Image;
 
-use glamour::{Point2, Rect, Size2};
+use glamour::{ Point2, Rect, Size2 };
 
 use serde::Deserialize;
 

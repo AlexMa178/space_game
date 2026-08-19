@@ -29,7 +29,7 @@ use glamour::{ Point2, Size2 };
 
 use serde::{ Deserialize, Serialize };
 
-use ggez_pixel_canvas::{PixelCanvas, PixelDrawParams};
+use ggez_pixel_canvas::{ PixelCanvas, PixelDrawParams };
 
 use crate::scale::{ Pixel, Tile, ToPixel, ToScreen };
 use crate::assets::{ BACKGROUND_IMAGE, ICON, INITIAL_GAME_SAVE, LETTERS_IMAGE, LEVELS };
@@ -343,7 +343,7 @@ impl EventHandler for Game {
 
         let mut canvas = PixelCanvas::new_frame(ctx, self.pixel_size);
 
-        canvas.draw(BACKGROUND_IMAGE.get(), PixelDrawParams::<i32>::default());
+        canvas.draw(BACKGROUND_IMAGE.get(), PixelDrawParams::<Pixel>::default());
 
         match &self.state {
             State::TitleMenu { menu } => {
@@ -381,7 +381,7 @@ impl EventHandler for Game {
                     let time_string = { let decimal = time * 10 / FULL_FRAME_FPS as u64; format!("{}.{}", decimal / 10, decimal % 10) };
                     let text_grid = UIGrid::fill(LetterTile::Empty).builder(31 - time_string.len(), 1).write(&time_string).build();
                     let composed = text_grid.compose_image_ggez(ctx, LETTERS_IMAGE.get_cloned())?;
-                    canvas.draw::<i32>(&composed, PixelDrawParams { z: 4, ..Default::default() });
+                    canvas.draw::<Pixel>(&composed, PixelDrawParams { z: 4, ..Default::default() });
 
                 };
 

@@ -155,19 +155,19 @@ impl Player {
 
         canvas.draw(PLAYER_IMAGE.get(), PDPTileBuilder::<Pixel, Tile>::new(TILE_PIXELS)
             .pixel_dest(self.pos - camera)
-            .tile_atlas_rect(Rect { origin: atlas_pos, size: Size2::ONE }.to_tuple())
+            .tile_atlas_rect((atlas_pos, Size2::<Tile>::ONE))
             .z(2)
         .build());
 
         if self.fire {
 
-            let (atlas_rect, rot_pivot_tile, rotation): (Rect<Tile>, Point2<Tile>, Angle<4>) = if let Some(rot_4) = self.dir.split_as::<4>() {
-                (Rect::from_origin_and_size([ 3, 0 ], [ 1, 2 ]), Point2::new(0, 0), rot_4.rot(RotFrom::NegY, RotDir::CounterClockwise))
+            let (atlas_rect, rot_pivot_tile, rotation): (Rect<Tile>, Point2<Tile>, Angle<4>) = if let Some(dir_4) = self.dir.split_as::<4>() {
+                (Rect::from_origin_and_size([ 3, 0 ], [ 1, 2 ]), Point2::new(0, 0), dir_4.rot(RotFrom::NegY, RotDir::CounterClockwise))
             } else {
                 (Rect::from_origin_and_size([ 4, 0 ], [ 2, 2 ]), Point2::new(1, 0), (self.dir.rot(RotFrom::NegY, RotDir::CounterClockwise) - Angle::A8_45).split_as::<4>().unwrap())
             };
 
-            canvas.draw(PLAYER_IMAGE.get(), PDPTileBuilder::<i32, u8>::new(TILE_PIXELS)
+            canvas.draw(PLAYER_IMAGE.get(), PDPTileBuilder::<Pixel, Tile>::new(TILE_PIXELS)
                 .pixel_dest(self.pos - camera)
                 .tile_atlas_rect(atlas_rect.to_tuple())
                 .angle(rotation)
