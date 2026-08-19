@@ -6,7 +6,8 @@ edition = "2024"
 [dependencies]
 imageable_tile_grid = { version = "0.1.8", features = [ "ggez" ] }
 generic_discrete_2d_rotations = "0.1.9"
-ggez_pixel_canvas = "0.1.13"
+ggez_pixel_canvas = "0.1.14"
 ggez = "0.10.0"
+glamour = "0.18.0"
 ron = "0.12.2"
 serde = { version = "1.0.229", features = ["derive"] }

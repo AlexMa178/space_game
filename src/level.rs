@@ -2,6 +2,8 @@ use std::collections::HashSet;
 
 use ggez::graphics::Image;
 
+use glamour::{Point2, Rect, Size2};
+
 use serde::Deserialize;
 
 use generic_discrete_2d_rotations::Ray;
@@ -9,7 +11,7 @@ use generic_discrete_2d_rotations::Ray;
 use ggez_pixel_canvas::{ PDPBuilder, PixelCanvas };
 
 use crate::TILE_PIXELS;
-use crate::scale::{ PositionAndDimension, WPixelRect, WPixelVector, WTileDimension, WTileVector };
+use crate::scale::{ Pixel, Tile };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CollisionType {
@@ -34,26 +36,26 @@ impl CollisionType {
 #[derive(Debug)]
 pub struct LevelCollision {
     grid: Vec<CollisionType>,
-    dim: WTileDimension,
+    dim: Size2<Tile>,
 }
 impl LevelCollision {
 
-    pub fn dim(&self) -> WTileDimension {
+    pub fn dim(&self) -> Size2<Tile> {
         self.dim
     }
 
-    pub fn at(&self, pos: WTileVector) -> CollisionType {
-        let [ c, r ] = pos.as_usizevec2().into();
-        self.grid[ r * self.dim.x as usize + c ]
+    pub fn at(&self, pos: Point2<Tile>) -> CollisionType {
+        let Point2 { x: c, y: r } = pos;
+        self.grid[ r as usize * self.dim.width as usize + c as usize ]
     }
 
-    pub fn touching(&self, obj_rect: WPixelRect) -> HashSet<CollisionType> {
+    pub fn touching(&self, obj_rect: Rect<Pixel>) -> HashSet<CollisionType> {
 
-        let min_pixel = obj_rect.pos();
-        let max_pixel = obj_rect.pos() + obj_rect.dim();
-        let min = (min_pixel / TILE_PIXELS).as_u8vec2();
-        let max = (max_pixel / TILE_PIXELS).as_u8vec2() + (max_pixel % TILE_PIXELS).map(|i| (i != 0) as i32).as_u8vec2();
-        let positions = ((min.x)..(max.x)).flat_map(|x| ((min.y)..(max.y)).map(move |y| WTileVector::new(x, y))).collect::<Vec<_>>();
+        let obj_rect_tile = Rect::from_min_max(
+            (obj_rect.min().as_::<f32>() / TILE_PIXELS as f32).floor().as_::<Tile>(),
+            (obj_rect.max().as_::<f32>() / TILE_PIXELS as f32).ceil() .as_::<Tile>(),
+        );
+        let positions = obj_rect_tile.x_range().flat_map(|x| obj_rect_tile.y_range().map(move |y| Point2::<Tile>::new(x, y))).collect::<Vec<_>>();
 
         positions.into_iter().map(|pos| self.at(pos)).collect()
 
@@ -69,7 +71,7 @@ impl LevelCollision {
                 .collect::<Vec<_>>()
             )
             .collect::<Vec<_>>();
-        let dim = WTileDimension::new(grid_2d[0].len() as u8, grid_2d.len() as u8);
+        let dim = Size2::new(grid_2d[0].len() as u8, grid_2d.len() as u8);
         let grid = grid_2d.into_iter().flatten().collect();
         LevelCollision { grid, dim }
     }
@@ -80,9 +82,9 @@ impl LevelCollision {
 pub struct Level {
     pub tiles: Image,
     pub collision: LevelCollision,
-    pub spawn_player_pos: WTileVector,
-    pub spawn_portal_pos: WTileVector,
-    pub spawn_black_holes_pos: Vec<WTileVector>,
+    pub spawn_player_pos: Point2<Tile>,
+    pub spawn_portal_pos: Point2<Tile>,
+    pub spawn_black_holes_pos: Vec<Point2<Tile>>,
 }
 impl Level {
 
@@ -90,14 +92,14 @@ impl Level {
         Self {
             tiles,
             collision,
-            spawn_player_pos: WTileVector::from(data.player_init),
-            spawn_portal_pos: WTileVector::from(data.portal),
-            spawn_black_holes_pos: data.black_holes.into_iter().map(WTileVector::from).collect(),
+            spawn_player_pos: Point2::from_tuple(data.player_init),
+            spawn_portal_pos: Point2::from_tuple(data.portal),
+            spawn_black_holes_pos: data.black_holes.into_iter().map(Point2::from_tuple).collect(),
         }
     }
 
-    pub fn draw(&self, canvas: &mut PixelCanvas, camera: WPixelVector) {
-        canvas.draw(&self.tiles, PDPBuilder::<i32>::new().dest(-camera).z(1).build());
+    pub fn draw(&self, canvas: &mut PixelCanvas, camera: Point2<Pixel>) {
+        canvas.draw(&self.tiles, PDPBuilder::<Pixel>::new().dest(-camera).z(1).build());
     }
 
 }

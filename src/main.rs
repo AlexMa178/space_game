@@ -25,11 +25,13 @@ use ggez::winit::platform::windows::{ CornerPreference, WindowExtWindows };
 use ggez::winit::dpi::PhysicalPosition;
 use ggez::winit::window::WindowButtons;
 
+use glamour::{ Point2, Size2 };
+
 use serde::{ Deserialize, Serialize };
 
 use ggez_pixel_canvas::{PixelCanvas, PixelDrawParams};
 
-use crate::scale::{ ToPixel, ToScreen, WPixelVector, WTileDimension };
+use crate::scale::{ Pixel, Tile, ToPixel, ToScreen };
 use crate::assets::{ BACKGROUND_IMAGE, ICON, INITIAL_GAME_SAVE, LETTERS_IMAGE, LEVELS };
 use crate::player::Player;
 use crate::animated::{ Explosion, Portal, BlackHole };
@@ -39,7 +41,7 @@ use crate::sounds::AllSounds;
 
 pub const FULL_FRAME_FPS: u32 = 5;
 pub const TILE_PIXELS: i32 = 8;
-pub const SCREEN_TILES: WTileDimension = WTileDimension::new(32, 18);
+pub const SCREEN_TILES: Size2<Tile> = Size2::new(32, 18);
 pub const NUM_LEVELS: usize = 8;
 
 fn main() -> GameResult {
@@ -90,7 +92,7 @@ struct PlayingState {
     portal: Portal,
     black_holes: Vec<BlackHole>,
     level_id: usize,
-    camera: WPixelVector,
+    camera: Point2<Pixel>,
     subframe_counter: u8,
 }
 impl PlayingState {
@@ -282,7 +284,7 @@ impl EventHandler for Game {
                     let player_pos = player.pos();
                     let player_rect = player.rect();
 
-                    if portal.collides_with(player_pos) {
+                    if portal.collides_with(player_rect) {
                         self.sounds.play_level_clear();
                         match self.progress.get(*level_id) {
                             Some(previous_best) => self.progress[*level_id] = *previous_best.min(timer),
@@ -293,7 +295,7 @@ impl EventHandler for Game {
                     }
 
                     if level.collision.touching(player_rect).contains(&CollisionType::Wall)
-                        || black_holes.iter().any(|b| b.collides_with(player_pos)) {
+                        || black_holes.iter().any(|b| b.collides_with(player_rect)) {
                         
                         self.sounds.play_explosion();
                         *maybe_explosion = Some(Explosion::new(player_pos));

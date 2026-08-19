@@ -2,48 +2,50 @@ use std::collections::HashSet;
 
 use ggez::winit::keyboard::KeyCode;
 
+use glamour::{ Point2, Rect, Size2, Vector2 };
+
 use generic_discrete_2d_rotations::{ A4, A8, Angle, Ray, RotDir, RotFrom };
 
 use ggez_pixel_canvas::{ PDPTileBuilder, PixelCanvas };
 
 use crate::TILE_PIXELS;
 use crate::animated::BlackHole;
-use crate::level::{CollisionType, LevelCollision};
-use crate::scale::{ DPixelVector, PositionAndDimension, TTileDimension, TTileRect, TTileVector, ToPixel, WPixelRect, WPixelVector, WTileDimension, WTileVector };
+use crate::level::{ CollisionType, LevelCollision };
 use crate::assets::{ PLAYER_IMAGE };
+use crate::scale::{ Pixel, Tile, ToPixel };
 use crate::sounds::AllSounds;
 
 pub const PLAYER_ACCELERATION: i32 = 2;
 pub const PLAYER_DECELERATION: i32 = 1;
 
 pub struct Player {
-    pos: WPixelVector,
-    vel: DPixelVector,
+    pos: Point2<Pixel>,
+    vel: Vector2<Pixel>,
     dir: Ray<8>,
     fire: bool,
 }
 impl Player {
 
-    pub fn new(initial_pos: WTileVector) -> Self {
+    pub fn new(initial_pos: Point2<Tile>) -> Self {
 
         Self {
             pos: initial_pos.to_pixel(),
-            vel: DPixelVector::ZERO,
+            vel: Vector2::ZERO,
             dir: Ray::IY_UP_8,
             fire: false,
         }
 
     }
 
-    pub fn pos(&self) -> WPixelVector {
+    pub fn pos(&self) -> Point2<Pixel> {
         self.pos
     }
 
-    pub fn rect(&self) -> WPixelRect {
-        WPixelRect::from_pos_dim(self.pos, WTileDimension::ONE.to_pixel())
+    pub fn rect(&self) -> Rect<Pixel> {
+        Rect { origin: self.pos, size: Size2::<Tile>::ONE.to_pixel() }
     }
 
-    pub fn vel(&self) -> DPixelVector {
+    pub fn vel(&self) -> Vector2<Pixel> {
         self.vel
     }
 
@@ -90,10 +92,10 @@ impl Player {
                 self.vel.y += v * PLAYER_ACCELERATION;
             }
 
-            let total_bh_influence = black_holes.iter().fold(DPixelVector::ZERO, |acc, bh| acc + bh.influence(self.rect()));
+            let total_bh_influence = black_holes.iter().fold(Vector2::<Pixel>::ZERO, |acc, bh| acc + bh.influence(self.rect()));
             self.vel += total_bh_influence;
-            if total_bh_influence.length_squared() != 0 {
-                let volume = (total_bh_influence.as_vec2().length() / 10.).clamp(0., 1.);
+            if total_bh_influence != Vector2::<Pixel>::ZERO {
+                let volume = (total_bh_influence.as_::<f32>().length() / 10.).clamp(0., 1.);
                 sounds.play_black_hole_pull(volume);
             }
 
@@ -102,7 +104,7 @@ impl Player {
         let per_subframe_x = self.vel.x / num_subframes as i32;
         let per_subframe_y = self.vel.y / num_subframes as i32;
         
-        self.pos += DPixelVector::new(per_subframe_x, per_subframe_y);
+        self.pos += Vector2::<Pixel>::new(per_subframe_x, per_subframe_y);
         
         let rem_x = self.vel.x % num_subframes as i32;
         let mut arr_x = vec![false; num_subframes as usize];
@@ -138,36 +140,36 @@ impl Player {
 
     }
 
-    pub fn draw(&self, canvas: &mut PixelCanvas, camera: WPixelVector) {
+    pub fn draw(&self, canvas: &mut PixelCanvas, camera: Point2<Pixel>) {
 
-        let atlas_pos = match self.dir.rot(RotFrom::NegY, RotDir::CounterClockwise).matchable_8() {
-            A8::D0   => TTileVector::new(1, 0),
-            A8::D45  => TTileVector::new(2, 0),
-            A8::D90  => TTileVector::new(2, 1),
-            A8::D135 => TTileVector::new(2, 2),
-            A8::D180 => TTileVector::new(1, 2),
-            A8::D225 => TTileVector::new(0, 2),
-            A8::D270 => TTileVector::new(0, 1),
-            A8::D315 => TTileVector::new(0, 0),
+        let atlas_pos: Point2<Tile> = match self.dir.rot(RotFrom::NegY, RotDir::CounterClockwise).matchable_8() {
+            A8::D0   => Point2::new(1, 0),
+            A8::D45  => Point2::new(2, 0),
+            A8::D90  => Point2::new(2, 1),
+            A8::D135 => Point2::new(2, 2),
+            A8::D180 => Point2::new(1, 2),
+            A8::D225 => Point2::new(0, 2),
+            A8::D270 => Point2::new(0, 1),
+            A8::D315 => Point2::new(0, 0),
         };
 
-        canvas.draw(PLAYER_IMAGE.get(), PDPTileBuilder::<i32, u8>::new(TILE_PIXELS)
+        canvas.draw(PLAYER_IMAGE.get(), PDPTileBuilder::<Pixel, Tile>::new(TILE_PIXELS)
             .pixel_dest(self.pos - camera)
-            .tile_atlas_rect(TTileRect::from_pos_dim(atlas_pos, TTileDimension::ONE))
+            .tile_atlas_rect(Rect { origin: atlas_pos, size: Size2::ONE }.to_tuple())
             .z(2)
         .build());
 
         if self.fire {
 
-            let (atlas_rect, rot_pivot_tile, rotation) = if let Some(rot_4) = self.dir.split_as::<4>() {
-                (TTileRect::new(3, 0, 1, 2), TTileVector::new(0, 0), rot_4.rot(RotFrom::NegY, RotDir::CounterClockwise))
+            let (atlas_rect, rot_pivot_tile, rotation): (Rect<Tile>, Point2<Tile>, Angle<4>) = if let Some(rot_4) = self.dir.split_as::<4>() {
+                (Rect::from_origin_and_size([ 3, 0 ], [ 1, 2 ]), Point2::new(0, 0), rot_4.rot(RotFrom::NegY, RotDir::CounterClockwise))
             } else {
-                (TTileRect::new(4, 0, 2, 2), TTileVector::new(1, 0), (self.dir.rot(RotFrom::NegY, RotDir::CounterClockwise) - Angle::A8_45).split_as::<4>().unwrap())
+                (Rect::from_origin_and_size([ 4, 0 ], [ 2, 2 ]), Point2::new(1, 0), (self.dir.rot(RotFrom::NegY, RotDir::CounterClockwise) - Angle::A8_45).split_as::<4>().unwrap())
             };
 
             canvas.draw(PLAYER_IMAGE.get(), PDPTileBuilder::<i32, u8>::new(TILE_PIXELS)
                 .pixel_dest(self.pos - camera)
-                .tile_atlas_rect(atlas_rect)
+                .tile_atlas_rect(atlas_rect.to_tuple())
                 .angle(rotation)
                 .tile_anchor(rot_pivot_tile)
                 .tile_pivot(rot_pivot_tile, true, true)
