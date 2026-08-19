@@ -91,11 +91,11 @@ impl AllSounds {
         self.sfx_muted = muted;
     }
 
-    pub fn to_menu(&mut self) {
+    pub fn set_to_menu(&mut self) {
         self.change_music(Music::Menu);
     }
 
-    pub fn to_game(&mut self) {
+    pub fn set_to_game(&mut self) {
         self.change_music(Music::Game);
     }
 

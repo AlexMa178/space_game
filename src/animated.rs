@@ -30,7 +30,7 @@ impl Explosion {
             self.frame += 1;
         }
 
-        return done;
+        done
 
     }
 
@@ -156,7 +156,7 @@ impl BlackHole {
         let self_center = self.center_pos.to_pixel().as_vec2() + TILE_PIXELS as f32 / 2.;
         let obj_center = obj_rect.pos().as_vec2() + obj_rect.dim().as_vec2() / 2.;
         let dist = self_center.distance(obj_center).round() as u64;
-        let strength = 6u64.checked_sub(dist / 12).unwrap_or(0) as i32;
+        let strength = 6u64.saturating_sub(dist / 12) as i32;
 
         let self_min = (self.center_pos - 1).to_pixel();
         let self_max = (self.center_pos + 2).to_pixel();

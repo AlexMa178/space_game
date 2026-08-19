@@ -198,7 +198,7 @@ impl EventHandler for Game {
                 }
                 if key_code == KeyCode::Escape {
                     *state = State::TitleMenu { menu: TitleMenu::new() };
-                    sounds.to_menu();
+                    sounds.set_to_menu();
                 }
 
             },
@@ -217,7 +217,7 @@ impl EventHandler for Game {
                 let to_game = menu.update(sounds, ctx, key_code, pixel_size, num_subframes);
                 if to_game {
                     *state = if progress.is_empty() {
-                        sounds.to_game();
+                        sounds.set_to_game();
                         State::Playing { state: PlayingState::new(0) }
                     } else {
                         State::LevelSelectMenu { menu: LevelSelectMenu::new(progress.len()) }
@@ -227,11 +227,11 @@ impl EventHandler for Game {
             },
             State::LevelSelectMenu { menu } => {
                 
-                let response = menu.update(&sounds, key_code, progress.len());
+                let response = menu.update(sounds, key_code, progress.len());
                 match response {
                     LSMUpdateResponse::ToLevel { level_id } => {
                         *state = State::Playing { state: PlayingState::new(level_id) };
-                        sounds.to_game();
+                        sounds.set_to_game();
                     },
                     LSMUpdateResponse::Back => {
                         *state = State::TitleMenu { menu: TitleMenu::new() };
@@ -264,7 +264,7 @@ impl EventHandler for Game {
 
             if portal.update(*subframe_counter) {
                 maybe_next_state = Some(State::LevelSelectMenu { menu: LevelSelectMenu::new(self.progress.len()) });
-                self.sounds.to_menu();
+                self.sounds.set_to_menu();
             };
 
             for black_hole in black_holes.iter_mut() {
@@ -277,7 +277,7 @@ impl EventHandler for Game {
                     *camera = camera::find_camera_pos(player.pos(), player.vel(), level.collision.dim());
 
                     let keys = ctx.keyboard.pressed_physical_keys.iter().filter_map(|pk| if let PhysicalKey::Code(key_code) = pk { Some(*key_code) } else { None }).collect::<HashSet<_>>();
-                    player.update(&mut self.sounds, *subframe_counter, ns, keys, &level.collision, &black_holes);
+                    player.update(&mut self.sounds, *subframe_counter, ns, keys, &level.collision, black_holes);
 
                     let player_pos = player.pos();
                     let player_rect = player.rect();

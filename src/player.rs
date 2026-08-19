@@ -47,7 +47,7 @@ impl Player {
         self.vel
     }
 
-    pub fn update(&mut self, sounds: &mut AllSounds, subframe_counter: u8, num_subframes: u8, keys: HashSet<KeyCode>, level_collision: &LevelCollision, black_holes: &Vec<BlackHole>) {
+    pub fn update(&mut self, sounds: &mut AllSounds, subframe_counter: u8, num_subframes: u8, keys: HashSet<KeyCode>, level_collision: &LevelCollision, black_holes: &[BlackHole]) {
 
         let collisions = level_collision.touching(self.rect());
         let maybe_normal_dir = collisions.iter().find_map(|c| if let CollisionType::Bouncy { normal_dir } = c { Some(*normal_dir) } else { None });
@@ -115,7 +115,7 @@ impl Player {
                 }
             }
         }
-        assert_eq!(rem_x.abs() as usize, arr_x.iter().filter(|x| **x).count());
+        assert_eq!(rem_x.unsigned_abs() as usize, arr_x.iter().filter(|x| **x).count());
         if arr_x[subframe_counter as usize] {
             self.pos.x += rem_x.signum();
         }
@@ -131,7 +131,7 @@ impl Player {
                 }
             }
         }
-        assert_eq!(rem_y.abs() as usize, arr_y.iter().filter(|x| **x).count());
+        assert_eq!(rem_y.unsigned_abs() as usize, arr_y.iter().filter(|x| **x).count());
         if arr_y[subframe_counter as usize] {
             self.pos.y += rem_y.signum();
         }

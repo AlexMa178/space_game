@@ -124,33 +124,25 @@ impl TitleMenu {
                     (true, true) => (),
                 };
             },
-            (2, KeyCode::ArrowLeft | KeyCode::KeyA) => {
-                if *ps !=  1 {
-                    *ps -= 1;
-                    let [ w, h ] = SCREEN_TILES.to_pixel().to_screen(*ps).into();
-                    ctx.gfx.set_drawable_size(w, h).unwrap();
-                    sounds.play_menu_click();
-                };
+            (2, KeyCode::ArrowLeft | KeyCode::KeyA) if *ps !=  1 => {
+                *ps -= 1;
+                let [ w, h ] = SCREEN_TILES.to_pixel().to_screen(*ps).into();
+                ctx.gfx.set_drawable_size(w, h).unwrap();
+                sounds.play_menu_click();
             },
-            (2, KeyCode::ArrowRight | KeyCode::KeyD) => {
-                if *ps != 15 {
-                    *ps += 1;
-                    let [ w, h ] = SCREEN_TILES.to_pixel().to_screen(*ps).into();
-                    ctx.gfx.set_drawable_size(w, h).unwrap();
-                    sounds.play_menu_click();
-                };
+            (2, KeyCode::ArrowRight | KeyCode::KeyD) if *ps != 15 => {
+                *ps += 1;
+                let [ w, h ] = SCREEN_TILES.to_pixel().to_screen(*ps).into();
+                ctx.gfx.set_drawable_size(w, h).unwrap();
+                sounds.play_menu_click();
             },
-            (3, KeyCode::ArrowLeft | KeyCode::KeyA) => {
-                if *ns !=  1 {
-                    *ns -= 1;
-                    sounds.play_menu_click();
-                };
+            (3, KeyCode::ArrowLeft | KeyCode::KeyA) if *ns !=  1 => {
+                *ns -= 1;
+                sounds.play_menu_click();
             },
-            (3, KeyCode::ArrowRight | KeyCode::KeyD) => {
-                if *ns != 12 {
-                    *ns += 1;
-                    sounds.play_menu_click();
-                };
+            (3, KeyCode::ArrowRight | KeyCode::KeyD) if *ns != 12 => {
+                *ns += 1;
+                sounds.play_menu_click();
             },
             _ => (),
         };
@@ -237,7 +229,7 @@ impl LevelSelectMenu {
 
     }
 
-    pub fn draw(&self, canvas: &mut PixelCanvas, gfx: &mut GraphicsContext, progress: &Vec<u64>) {
+    pub fn draw(&self, canvas: &mut PixelCanvas, gfx: &mut GraphicsContext, progress: &[u64]) {
 
         let s = self.selection;
         let p = progress.len().min(NUM_LEVELS - 1) as u8;

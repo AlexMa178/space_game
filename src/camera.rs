@@ -8,8 +8,7 @@ pub fn find_camera_pos(player_pos: WPixelVector, player_vel: DPixelVector, level
     let screen_pixels = SCREEN_TILES.to_pixel();
     let center = player_pos - screen_pixels / 2;
     let offset = player_vel.clamp(DPixelVector::splat(-MAX_OFFSET), DPixelVector::splat(MAX_OFFSET));
-    let clamped = (center + offset).clamp(WPixelVector::ZERO, level_dim.to_pixel() - screen_pixels);
-    clamped
+    (center + offset).clamp(WPixelVector::ZERO, level_dim.to_pixel() - screen_pixels)
 }
 
 pub fn initial(level: &Level) -> WPixelVector {
