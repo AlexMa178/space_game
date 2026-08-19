@@ -420,7 +420,7 @@ checksum = "28780d72908948745af036ca7418d6d932f60afb48ed623291d2ccbfb8aefbff"
 dependencies = [
  "bytemuck",
  "crevice-derive",
- "glam",
+ "glam 0.32.1",
  "mint",
 ]
 
@@ -768,7 +768,7 @@ dependencies = [
  "crevice",
  "directories",
  "gilrs",
- "glam",
+ "glam 0.32.1",
  "glyph_brush",
  "image",
  "log",
@@ -788,12 +788,13 @@ dependencies = [
 
 [[package]]
 name = "ggez_pixel_canvas"
-version = "0.1.11"
+version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "966fc1f3ff437422194ffa69451cb2a20fa8fc14bd40c7d24e87819cce3f79ce"
+checksum = "fdfe60a66afe187dfa134487ea76516ecb2a335b0ae9e991c9547e9312c978c9"
 dependencies = [
  "generic_discrete_2d_rotations",
  "ggez",
+ "glamour",
  "num-traits",
 ]
 
@@ -844,12 +845,34 @@ dependencies = [
 
 [[package]]
 name = "glam"
+version = "0.30.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "19fc433e8437a212d1b6f1e68c7824af3aed907da60afa994e7f542d18d12aa9"
+dependencies = [
+ "approx",
+ "bytemuck",
+]
+
+[[package]]
+name = "glam"
 version = "0.32.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f70749695b063ecbf6b62949ccccde2e733ec3ecbbd71d467dca4e5c6c97cca0"
 dependencies = [
  "bytemuck",
  "mint",
+]
+
+[[package]]
+name = "glamour"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ef06d510f7874a5647445b66316936f7a4a14bc8c30035da257bab425a991eb0"
+dependencies = [
+ "approx",
+ "bytemuck",
+ "glam 0.30.10",
+ "num-traits",
 ]
 
 [[package]]

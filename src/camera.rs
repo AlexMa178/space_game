@@ -2,7 +2,7 @@ use crate::{ SCREEN_TILES, TILE_PIXELS };
 use crate::scale::{ DPixelVector, ToPixel, WPixelVector, WTileDimension };
 use crate::level::Level;
 
-pub const MAX_OFFSET: i32 = 4 * TILE_PIXELS as i32;
+pub const MAX_OFFSET: i32 = 4 * TILE_PIXELS;
 
 pub fn find_camera_pos(player_pos: WPixelVector, player_vel: DPixelVector, level_dim: WTileDimension) -> WPixelVector {
     let screen_pixels = SCREEN_TILES.to_pixel();

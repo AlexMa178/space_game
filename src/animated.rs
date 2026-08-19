@@ -38,7 +38,7 @@ impl Explosion {
 
         let atlas_rect = TTileRect::new(self.frame * 3, 0, 3, 3);
 
-        canvas.draw(EXPLOSION_IMAGE.get(), PDPTileBuilder::new(TILE_PIXELS)
+        canvas.draw(EXPLOSION_IMAGE.get(), PDPTileBuilder::<i32, u8>::new(TILE_PIXELS)
             .pixel_dest(self.pos - camera)
             .tile_atlas_rect(atlas_rect)
             .z(3)
@@ -116,7 +116,7 @@ impl Portal {
             }
         };
 
-        canvas.draw(image, PDPTileBuilder::new(TILE_PIXELS)
+        canvas.draw(image, PDPTileBuilder::<i32, u8>::new(TILE_PIXELS)
             .pixel_dest(pos.to_pixel() - camera)
             .tile_atlas_rect(atlas_rect)
             .z(3)
@@ -172,7 +172,7 @@ impl BlackHole {
 
         let atlas_rect = TTileRect::new(self.frame * 3, 0, 3, 3);
 
-        canvas.draw(BLACK_HOLE_IMAGE.get(), PDPTileBuilder::new(TILE_PIXELS)
+        canvas.draw(BLACK_HOLE_IMAGE.get(), PDPTileBuilder::<i32, u8>::new(TILE_PIXELS)
             .pixel_dest((self.center_pos - 1).to_pixel() - camera)
             .tile_atlas_rect(atlas_rect)
             .z(3)

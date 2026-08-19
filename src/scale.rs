@@ -20,13 +20,13 @@ pub trait ToPixel {
 impl ToPixel for U8Vec2 {
     type Output = IVec2;
     fn to_pixel(self) -> Self::Output {
-        self.as_ivec2() * TILE_PIXELS as i32
+        self.as_ivec2() * TILE_PIXELS
     }
 }
 impl ToPixel for U8Vec4 {
     type Output = IVec4;
     fn to_pixel(self) -> Self::Output {
-        self.as_ivec4() * TILE_PIXELS as i32
+        self.as_ivec4() * TILE_PIXELS
     }
 }
 

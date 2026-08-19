@@ -38,7 +38,7 @@ use crate::menu::{ LSMUpdateResponse, LetterTile, LevelSelectMenu, TitleMenu, UI
 use crate::sounds::AllSounds;
 
 pub const FULL_FRAME_FPS: u32 = 5;
-pub const TILE_PIXELS: u8 = 8;
+pub const TILE_PIXELS: i32 = 8;
 pub const SCREEN_TILES: WTileDimension = WTileDimension::new(32, 18);
 pub const NUM_LEVELS: usize = 8;
 

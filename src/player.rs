@@ -151,7 +151,7 @@ impl Player {
             A8::D315 => TTileVector::new(0, 0),
         };
 
-        canvas.draw(PLAYER_IMAGE.get(), PDPTileBuilder::new(TILE_PIXELS)
+        canvas.draw(PLAYER_IMAGE.get(), PDPTileBuilder::<i32, u8>::new(TILE_PIXELS)
             .pixel_dest(self.pos - camera)
             .tile_atlas_rect(TTileRect::from_pos_dim(atlas_pos, TTileDimension::ONE))
             .z(2)
@@ -165,7 +165,7 @@ impl Player {
                 (TTileRect::new(4, 0, 2, 2), TTileVector::new(1, 0), (self.dir.rot(RotFrom::NegY, RotDir::CounterClockwise) - Angle::A8_45).split_as::<4>().unwrap())
             };
 
-            canvas.draw(PLAYER_IMAGE.get(), PDPTileBuilder::new(TILE_PIXELS)
+            canvas.draw(PLAYER_IMAGE.get(), PDPTileBuilder::<i32, u8>::new(TILE_PIXELS)
                 .pixel_dest(self.pos - camera)
                 .tile_atlas_rect(atlas_rect)
                 .angle(rotation)

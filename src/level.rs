@@ -51,8 +51,8 @@ impl LevelCollision {
 
         let min_pixel = obj_rect.pos();
         let max_pixel = obj_rect.pos() + obj_rect.dim();
-        let min = (min_pixel / TILE_PIXELS as i32).as_u8vec2();
-        let max = (max_pixel / TILE_PIXELS as i32).as_u8vec2() + (max_pixel % TILE_PIXELS as i32).map(|i| (i != 0) as i32).as_u8vec2();
+        let min = (min_pixel / TILE_PIXELS).as_u8vec2();
+        let max = (max_pixel / TILE_PIXELS).as_u8vec2() + (max_pixel % TILE_PIXELS).map(|i| (i != 0) as i32).as_u8vec2();
         let positions = ((min.x)..(max.x)).flat_map(|x| ((min.y)..(max.y)).map(move |y| WTileVector::new(x, y))).collect::<Vec<_>>();
 
         positions.into_iter().map(|pos| self.at(pos)).collect()
@@ -97,7 +97,7 @@ impl Level {
     }
 
     pub fn draw(&self, canvas: &mut PixelCanvas, camera: WPixelVector) {
-        canvas.draw(&self.tiles, PDPBuilder::new().dest(-camera).z(1).build());
+        canvas.draw(&self.tiles, PDPBuilder::<i32>::new().dest(-camera).z(1).build());
     }
 
 }
