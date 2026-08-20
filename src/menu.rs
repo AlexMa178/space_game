@@ -18,7 +18,6 @@ pub enum LetterTile {
     BigTop { i: u8 }, BigBottom { i: u8 }, Small { i: u8 }, Digit { n: u8 }, Dot, RightArrow, LeftArrow, Colon, Point, Empty
 }
 impl GridTile for LetterTile {
-    type PixelUnit = Pixel;
     type TileUnit = Tile;
     fn atlas_pos(&self) -> [ u8; 2 ] {
         match self {
