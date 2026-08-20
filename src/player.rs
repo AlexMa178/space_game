@@ -6,13 +6,12 @@ use glamour::{ Point2, Rect, Size2, Vector2 };
 
 use generic_discrete_2d_rotations::{ A4, A8, Angle, Ray, RotDir, RotFrom };
 
-use ggez_pixel_canvas::{ PDPTileBuilder, PixelCanvas };
+use ggez_pixel_canvas::{ PixelCanvas, PixelDrawParams, ToPixel };
 
-use crate::TILE_PIXELS;
+use crate::{ TILE_PIXELS, Pixel, Tile };
 use crate::animated::BlackHole;
 use crate::level::{ CollisionType, LevelCollision };
 use crate::assets::{ PLAYER_IMAGE };
-use crate::scale::{ Pixel, Tile, ToPixel };
 use crate::sounds::AllSounds;
 
 pub const PLAYER_ACCELERATION: i32 = 2;
@@ -153,11 +152,11 @@ impl Player {
             A8::D315 => Point2::new(0, 0),
         };
 
-        canvas.draw(PLAYER_IMAGE.get(), PDPTileBuilder::<Pixel, Tile>::new(TILE_PIXELS)
-            .pixel_dest(self.pos - camera)
-            .tile_atlas_rect((atlas_pos, Size2::<Tile>::ONE))
+        canvas.draw(PLAYER_IMAGE.get(), PixelDrawParams::default()
+            .dest::<Pixel>(self.pos - camera)
+            .atlas_rect::<Tile>((atlas_pos, Size2::<Tile>::ONE))
             .z(2)
-        .build());
+        );
 
         if self.fire {
 
@@ -167,14 +166,14 @@ impl Player {
                 (Rect::from_origin_and_size([ 4, 0 ], [ 2, 2 ]), Point2::new(1, 0), (self.dir.rot(RotFrom::NegY, RotDir::CounterClockwise) - Angle::A8_45).split_as::<4>().unwrap())
             };
 
-            canvas.draw(PLAYER_IMAGE.get(), PDPTileBuilder::<Pixel, Tile>::new(TILE_PIXELS)
-                .pixel_dest(self.pos - camera)
-                .tile_atlas_rect(atlas_rect.to_tuple())
+            canvas.draw(PLAYER_IMAGE.get(), PixelDrawParams::default()
+                .dest::<Pixel>(self.pos - camera)
+                .atlas_rect::<Tile>(atlas_rect.to_tuple())
                 .angle(rotation)
-                .tile_anchor(rot_pivot_tile)
-                .tile_pivot(rot_pivot_tile, true, true)
+                .anchor::<Tile>(rot_pivot_tile)
+                .pivot::<Pixel>(rot_pivot_tile.to_pixel() + Vector2::splat(TILE_PIXELS / 2))
                 .z(2)
-            .build());
+            );
 
         }
 

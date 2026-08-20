@@ -788,9 +788,9 @@ dependencies = [
 
 [[package]]
 name = "ggez_pixel_canvas"
-version = "0.1.14"
+version = "0.1.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5177fbbc17dd6690989ded1069d05848c6a067e2dd4297680c80c60426cb9429"
+checksum = "ae3aed9e26379a55465ce978f42a7953191b5e54cb8ac49f1ae85c1905669e42"
 dependencies = [
  "generic_discrete_2d_rotations",
  "ggez",
@@ -851,6 +851,7 @@ checksum = "19fc433e8437a212d1b6f1e68c7824af3aed907da60afa994e7f542d18d12aa9"
 dependencies = [
  "approx",
  "bytemuck",
+ "mint",
 ]
 
 [[package]]
@@ -872,6 +873,7 @@ dependencies = [
  "approx",
  "bytemuck",
  "glam 0.30.10",
+ "mint",
  "num-traits",
 ]
 
@@ -1046,11 +1048,14 @@ dependencies = [
 
 [[package]]
 name = "imageable_tile_grid"
-version = "0.1.8"
+version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d9f9cf6544fc30b79382c286dd0ef855610dcd4d1c73625075dfa593dd4f7d9"
+checksum = "74360eaa884046ae67a208cdbf313dde0b2de1a7a5c6686966e5e148a3e4207e"
 dependencies = [
  "ggez",
+ "ggez_pixel_canvas",
+ "glamour",
+ "num-traits",
 ]
 
 [[package]]

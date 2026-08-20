@@ -1,9 +1,8 @@
 use glamour::{ Point2, Rect, Size2, Vector2 };
 
-use ggez_pixel_canvas::{ PDPTileBuilder, PixelCanvas };
+use ggez_pixel_canvas::{ PixelCanvas, PixelDrawParams, ToPixel };
 
-use crate::TILE_PIXELS;
-use crate::scale::{ Pixel, Tile, ToPixel };
+use crate::{ TILE_PIXELS, Pixel, Tile };
 use crate::assets::{ BLACK_HOLE_IMAGE, EXPLOSION_IMAGE, PORTAL_COLLAPSE_IMAGE, PORTAL_IMAGE };
 
 pub struct Explosion {
@@ -40,11 +39,11 @@ impl Explosion {
 
         let atlas_rect = Rect::<Tile>::from_origin_and_size([ self.frame * 3, 0 ], [ 3, 3 ]);
 
-        canvas.draw(EXPLOSION_IMAGE.get(), PDPTileBuilder::<Pixel, Tile>::new(TILE_PIXELS)
-            .pixel_dest(self.pos - camera)
-            .tile_atlas_rect(atlas_rect.to_tuple())
+        canvas.draw(EXPLOSION_IMAGE.get(), PixelDrawParams::<Pixel>::default()
+            .dest::<Pixel>(self.pos - camera)
+            .atlas_rect::<Tile>(atlas_rect.to_tuple())
             .z(3)
-        .build());
+        );
 
     }
 
@@ -127,11 +126,11 @@ impl Portal {
 
         let rect = self.rect();
 
-        canvas.draw(image, PDPTileBuilder::<Pixel, Tile>::new(TILE_PIXELS)
-            .pixel_dest(rect.origin.to_pixel() - camera)
-            .tile_atlas_rect(([ atlas_x, 0 ], rect.size))
+        canvas.draw(image, PixelDrawParams::<Pixel>::default()
+            .dest::<Pixel>(rect.origin.to_pixel() - camera)
+            .atlas_rect::<Tile>(([ atlas_x, 0 ], rect.size))
             .z(3)
-        .build());
+        );
 
     }
 
@@ -189,11 +188,11 @@ impl BlackHole {
         let rect = self.rect();
         let atlas_rect = Rect::new(Point2::new(self.frame * 3, 0), rect.size);
 
-        canvas.draw(BLACK_HOLE_IMAGE.get(), PDPTileBuilder::<Pixel, Tile>::new(TILE_PIXELS)
-            .pixel_dest(rect.origin.to_pixel() - camera)
-            .tile_atlas_rect(atlas_rect.to_tuple())
+        canvas.draw(BLACK_HOLE_IMAGE.get(), PixelDrawParams::default()
+            .dest::<Pixel>(rect.origin.to_pixel() - camera)
+            .atlas_rect::<Tile>(atlas_rect.to_tuple())
             .z(3)
-        .build());
+        );
 
     }
 

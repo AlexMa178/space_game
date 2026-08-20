@@ -1,6 +1,5 @@
 #![windows_subsystem = "windows"]
 
-mod scale;
 mod assets;
 mod player;
 mod animated;
@@ -18,6 +17,7 @@ use ggez::context::{ Context, ContextBuilder };
 use ggez::event::{ self, EventHandler };
 use ggez::error::{ GameError, GameResult };
 use ggez::conf::WindowSetup;
+use ggez::graphics::{Canvas, Color, DrawParam, Sampler};
 use ggez::input::keyboard::KeyInput;
 
 use ggez::winit::keyboard::{ KeyCode, PhysicalKey };
@@ -25,13 +25,12 @@ use ggez::winit::platform::windows::{ CornerPreference, WindowExtWindows };
 use ggez::winit::dpi::PhysicalPosition;
 use ggez::winit::window::WindowButtons;
 
-use glamour::{ Point2, Size2 };
+use glamour::{ Point2, Size2, Unit, Vector2 };
 
 use serde::{ Deserialize, Serialize };
 
-use ggez_pixel_canvas::{ PixelCanvas, PixelDrawParams };
+use ggez_pixel_canvas::{ AsPixel, PixelCanvas, PixelDrawParams, ToPixel };
 
-use crate::scale::{ Pixel, Tile, ToPixel, ToScreen };
 use crate::assets::{ BACKGROUND_IMAGE, ICON, INITIAL_GAME_SAVE, LETTERS_IMAGE, LEVELS };
 use crate::player::Player;
 use crate::animated::{ Explosion, Portal, BlackHole };
@@ -43,6 +42,29 @@ pub const FULL_FRAME_FPS: u32 = 5;
 pub const TILE_PIXELS: i32 = 8;
 pub const SCREEN_TILES: Size2<Tile> = Size2::new(32, 18);
 pub const NUM_LEVELS: usize = 8;
+
+pub struct Tile;
+impl Unit for Tile {
+    type Scalar = u8;
+}
+impl AsPixel for Tile {
+    type PixelType = Pixel;
+    const SIZE: i32 = TILE_PIXELS;
+}
+
+pub struct Pixel;
+impl Unit for Pixel {
+    type Scalar = i32;
+}
+impl AsPixel for Pixel {
+    type PixelType = Self;
+    const SIZE: i32 = 1;
+}
+
+pub struct ScreenPos;
+impl Unit for ScreenPos {
+    type Scalar = f32;
+}
 
 fn main() -> GameResult {
 
@@ -68,7 +90,7 @@ fn main() -> GameResult {
     ctx.gfx.window().set_corner_preference(CornerPreference::DoNotRound);
     ctx.gfx.window().set_window_icon(Some(ICON.get_cloned()));
     ctx.gfx.window().set_taskbar_icon(Some(ICON.get_cloned()));
-    let [ window_w, window_h ] = SCREEN_TILES.to_pixel().to_screen(INITIAL_GAME_SAVE.get().pixel_size).into();
+    let [ window_w, window_h ] = SCREEN_TILES.to_pixel().as_::<ScreenPos>().map(|s| s * INITIAL_GAME_SAVE.get().pixel_size as f32).into();
     ctx.gfx.set_drawable_size(window_w, window_h)?;
     let game = Game::new(&ctx);
     event::run(ctx, event_loop, game)
@@ -341,35 +363,35 @@ impl EventHandler for Game {
 
         let ns = self.num_subframes;
 
-        let mut canvas = PixelCanvas::new_frame(ctx, self.pixel_size);
+        let mut pixel_canvas = PixelCanvas::new::<Tile>(ctx, SCREEN_TILES);
 
-        canvas.draw(BACKGROUND_IMAGE.get(), PixelDrawParams::<Pixel>::default());
+        pixel_canvas.draw(BACKGROUND_IMAGE.get(), PixelDrawParams::<Pixel>::default());
 
         match &self.state {
             State::TitleMenu { menu } => {
 
-                menu.draw(&self.sounds, self.pixel_size, ns, &mut canvas, &mut ctx.gfx);
+                menu.draw(&self.sounds, self.pixel_size, ns, &mut pixel_canvas, &mut ctx.gfx);
 
             },
             State::LevelSelectMenu { menu } => {
 
-                menu.draw(&mut canvas, &mut ctx.gfx, &self.progress);
+                menu.draw(&mut pixel_canvas, &mut ctx.gfx, &self.progress);
 
             }
             State::Playing { state: PlayingState { maybe_player, maybe_explosion, portal, black_holes, level_id, camera, .. } } => {
                 
                 let level = LEVELS[ *level_id ].get();
 
-                level.draw(&mut canvas, *camera);
+                level.draw(&mut pixel_canvas, *camera);
                 if let PlayerExistence::Exists { player, .. } = maybe_player {
-                    player.draw(&mut canvas, *camera);
+                    player.draw(&mut pixel_canvas, *camera);
                 }
-                portal.draw(&mut canvas, *camera);
+                portal.draw(&mut pixel_canvas, *camera);
                 if let Some(explosion) = maybe_explosion {
-                    explosion.draw(&mut canvas, *camera);
+                    explosion.draw(&mut pixel_canvas, *camera);
                 }
                 for black_hole in black_holes {
-                    black_hole.draw(&mut canvas, *camera);
+                    black_hole.draw(&mut pixel_canvas, *camera);
                 }
 
                 if let Some(time) = { match maybe_player {
@@ -379,15 +401,20 @@ impl EventHandler for Game {
                 } } {
                     
                     let time_string = { let decimal = time * 10 / FULL_FRAME_FPS as u64; format!("{}.{}", decimal / 10, decimal % 10) };
-                    let text_grid = UIGrid::fill(LetterTile::Empty).builder(31 - time_string.len(), 1).write(&time_string).build();
-                    let composed = text_grid.compose_image_ggez(ctx, LETTERS_IMAGE.get_cloned())?;
-                    canvas.draw::<Pixel>(&composed, PixelDrawParams { z: 4, ..Default::default() });
+                    let text_grid = UIGrid::fill(LetterTile::Empty).builder(31 - time_string.len() as u8, 1).write(&time_string).build();
+                    let composed = text_grid.compose_image(ctx, LETTERS_IMAGE.get())?;
+                    pixel_canvas.draw::<Pixel>(&composed, PixelDrawParams { z: 4, ..Default::default() });
 
                 };
 
             },
         }
 
+        let pixel_output = pixel_canvas.finish(ctx)?;
+
+        let mut canvas = Canvas::from_frame(ctx, Color::BLACK);
+        canvas.set_sampler(Sampler::nearest_clamp());
+        canvas.draw(&pixel_output, DrawParam::default().scale(Vector2::<u8>::splat(self.pixel_size).as_::<f32>().to_array()));
         canvas.finish(ctx)
 
     }

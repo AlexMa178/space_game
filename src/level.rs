@@ -8,10 +8,9 @@ use serde::Deserialize;
 
 use generic_discrete_2d_rotations::Ray;
 
-use ggez_pixel_canvas::{ PDPBuilder, PixelCanvas };
+use ggez_pixel_canvas::{ PixelCanvas, PixelDrawParams };
 
-use crate::TILE_PIXELS;
-use crate::scale::{ Pixel, Tile };
+use crate::{ TILE_PIXELS, Pixel, Tile };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CollisionType {
@@ -99,7 +98,7 @@ impl Level {
     }
 
     pub fn draw(&self, canvas: &mut PixelCanvas, camera: Point2<Pixel>) {
-        canvas.draw(&self.tiles, PDPBuilder::<Pixel>::new().dest(-camera).z(1).build());
+        canvas.draw(&self.tiles, PixelDrawParams::<Pixel>::default().dest::<Pixel>(-camera).z(1));
     }
 
 }

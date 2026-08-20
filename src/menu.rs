@@ -3,12 +3,12 @@ use ggez::graphics::GraphicsContext;
 
 use ggez::winit::keyboard::KeyCode;
 
-use ggez_pixel_canvas::{ PixelCanvas, PixelDrawParams };
-use imageable_tile_grid::{ CharTile, MultiTile, Tile, TileGrid };
+use ggez_pixel_canvas::{ PixelCanvas, PixelDrawParams, ToPixel };
+use imageable_tile_grid::{ CharTile, MultiTile, Tile as GridTile, TileGrid };
 
+use crate::{ Pixel, ScreenPos, Tile };
 use crate::sounds::AllSounds;
 use crate::{ FULL_FRAME_FPS, NUM_LEVELS, SCREEN_TILES };
-use crate::scale::{ Pixel, ToPixel, ToScreen };
 use crate::assets::LETTERS_IMAGE;
 
 pub type UIGrid = TileGrid::<LetterTile, {SCREEN_TILES.width as usize}, {SCREEN_TILES.height as usize}>;
@@ -17,14 +17,15 @@ pub type UIGrid = TileGrid::<LetterTile, {SCREEN_TILES.width as usize}, {SCREEN_
 pub enum LetterTile {
     BigTop { i: u8 }, BigBottom { i: u8 }, Small { i: u8 }, Digit { n: u8 }, Dot, RightArrow, LeftArrow, Colon, Point, Empty
 }
-impl Tile for LetterTile {
-    const SIZE: usize = 8;
-    fn atlas_pos(&self) -> [usize; 2] {
+impl GridTile for LetterTile {
+    type PixelUnit = Pixel;
+    type TileUnit = Tile;
+    fn atlas_pos(&self) -> [ u8; 2 ] {
         match self {
-            Self::BigTop    { i } => [ *i as usize, 0 ],
-            Self::BigBottom { i } => [ *i as usize, 1 ],
-            Self::Small     { i } => [ *i as usize, 2 ],
-            Self::Digit     { n } => [ *n as usize, 3 ],
+            Self::BigTop    { i } => [ *i, 0 ],
+            Self::BigBottom { i } => [ *i, 1 ],
+            Self::Small     { i } => [ *i, 2 ],
+            Self::Digit     { n } => [ *n, 3 ],
             Self::Dot        => [ 10, 3 ],
             Self::RightArrow => [ 11, 3 ],
             Self::LeftArrow  => [ 12, 3 ],
@@ -55,10 +56,10 @@ enum BigLetter {
 }
 impl MultiTile for BigLetter {
     type SubTile = LetterTile;
-    fn dimensions(&self) -> [ usize; 2 ] {
+    fn dimensions(&self) -> [ u8; 2 ] {
         [ 1, 2 ]
     }
-    fn sub(&self, x: usize, y: usize) -> Self::SubTile {
+    fn sub(&self, x: u8, y: u8) -> Self::SubTile {
         match (self, x, y) {
             (Self::Letter { i }, 0, 0) => LetterTile::BigTop { i: *i },
             (Self::Letter { i }, 0, 1) => LetterTile::BigBottom { i: *i },
@@ -126,13 +127,13 @@ impl TitleMenu {
             },
             (2, KeyCode::ArrowLeft | KeyCode::KeyA) if *ps !=  1 => {
                 *ps -= 1;
-                let [ w, h ] = SCREEN_TILES.to_pixel().to_screen(*ps).into();
+                let [ w, h ] = SCREEN_TILES.to_pixel().as_::<ScreenPos>().map(|s| s * *ps as f32).into();
                 ctx.gfx.set_drawable_size(w, h).unwrap();
                 sounds.play_menu_click();
             },
             (2, KeyCode::ArrowRight | KeyCode::KeyD) if *ps != 15 => {
                 *ps += 1;
-                let [ w, h ] = SCREEN_TILES.to_pixel().to_screen(*ps).into();
+                let [ w, h ] = SCREEN_TILES.to_pixel().as_::<ScreenPos>().map(|s| s * *ps as f32).into();
                 ctx.gfx.set_drawable_size(w, h).unwrap();
                 sounds.play_menu_click();
             },
@@ -178,7 +179,7 @@ impl TitleMenu {
             .set_x(17).write(if s == 4 { "enter" } else { "" })
             .build();
 
-        let composed = text_grid.compose_image_ggez(gfx, LETTERS_IMAGE.get_cloned()).unwrap();
+        let composed = text_grid.compose_image(gfx, LETTERS_IMAGE.get()).unwrap();
         canvas.draw(&composed, PixelDrawParams::<Pixel>::default());
 
     }
@@ -237,29 +238,29 @@ impl LevelSelectMenu {
         let mut text_grid = UIGrid::fill(LetterTile::Empty)
             .builder(1, 1).write_multi::<BigLetter>("level select").build();
         for i in 0..=p {
-            let y = 5 + i as usize;
+            let y = 5 + i;
             text_grid = text_grid.builder(3, y).write((i + 1).to_string().as_str()).build();
             match progress.get(i as usize) {
                 Some(n) => {
                     let time_string = { let decimal = n * 10 / FULL_FRAME_FPS as u64; format!("{}.{}", decimal / 10, decimal % 10) };
-                    text_grid = text_grid.builder(13 - time_string.len(), y).write(&time_string).build();
+                    text_grid = text_grid.builder(13 - time_string.len() as u8, y).write(&time_string).build();
                 },
                 None => {
                     text_grid = text_grid.builder(9, y).write("none").build();
                 },
             }
         }
-        if s != p + 1 { text_grid = text_grid.builder(1, 5 + s as usize).write("-").set_x(17).write("enter").build(); }
-        text_grid = text_grid.builder(1, 7 + p as usize)
+        if s != p + 1 { text_grid = text_grid.builder(1, 5 + s).write("-").set_x(17).write("enter").build(); }
+        text_grid = text_grid.builder(1, 7 + p)
             .write(if s == p + 1 { "-" } else { "" }).set_x(3).write("back")
             .set_x(17).write(if s == p + 1 { "enter" } else { "" }).build();
         if progress.len() == NUM_LEVELS {
             let sum_string = { let decimal = progress.iter().sum::<u64>() * 10 / FULL_FRAME_FPS as u64; format!("{}.{}", decimal / 10, decimal % 10) };
             let sum_label_string = format!("sum:{sum_string}");
-            text_grid = text_grid.builder(30 - sum_label_string.len(), 1).write(&sum_label_string).build();
+            text_grid = text_grid.builder(30 - sum_label_string.len() as u8, 1).write(&sum_label_string).build();
         }
 
-        let composed = text_grid.compose_image_ggez(gfx, LETTERS_IMAGE.get_cloned()).unwrap();
+        let composed = text_grid.compose_image(gfx, LETTERS_IMAGE.get()).unwrap();
         canvas.draw(&composed, PixelDrawParams::<Pixel>::default());
 
     }

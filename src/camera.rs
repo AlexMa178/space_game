@@ -1,7 +1,8 @@
 use glamour::{ Point2, Size2, Vector2 };
 
-use crate::{ SCREEN_TILES, TILE_PIXELS };
-use crate::scale::{ Pixel, Tile, ToPixel };
+use ggez_pixel_canvas::ToPixel;
+
+use crate::{ SCREEN_TILES, TILE_PIXELS, Pixel, Tile };
 use crate::level::Level;
 
 pub const MAX_OFFSET: i32 = 4 * TILE_PIXELS;
