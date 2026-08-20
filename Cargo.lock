@@ -1048,9 +1048,9 @@ dependencies = [
 
 [[package]]
 name = "imageable_tile_grid"
-version = "0.1.15"
+version = "0.1.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d024bd9c519c204c7ac8b6ba1a1ef56dccfdac77e3ca6325db512946ef5803ee"
+checksum = "acd7cf103de04ffdc13b2d829a013c8270e5533a013e740d44e18e55c8708a1c"
 dependencies = [
  "ggez",
  "ggez_pixel_canvas",
