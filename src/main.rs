@@ -363,7 +363,7 @@ impl EventHandler for Game {
 
         let ns = self.num_subframes;
 
-        let mut pixel_canvas = PixelCanvas::new::<Tile>(ctx, SCREEN_TILES);
+        let mut pixel_canvas = PixelCanvas::new(ctx, SCREEN_TILES);
 
         pixel_canvas.draw(BACKGROUND_IMAGE.get(), PixelDrawParams::<Pixel>::default());
 

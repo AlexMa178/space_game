@@ -5,8 +5,8 @@ edition = "2024"
 
 [dependencies]
 generic_discrete_2d_rotations = "0.1.9"
-ggez_pixel_canvas = "0.1.17"
-imageable_tile_grid = "0.1.16"
+ggez_pixel_canvas = "0.1.19"
+imageable_tile_grid = "0.1.17"
 ggez = "0.10.0"
 glamour = "0.18.0"
 ron = "0.12.2"

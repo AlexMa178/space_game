@@ -98,7 +98,7 @@ impl Level {
     }
 
     pub fn draw(&self, canvas: &mut PixelCanvas, camera: Point2<Pixel>) {
-        canvas.draw(&self.tiles, PixelDrawParams::<Pixel>::default().dest::<Pixel>(-camera).z(1));
+        canvas.draw(&self.tiles, PixelDrawParams::default().dest(-camera).z(1));
     }
 
 }

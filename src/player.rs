@@ -93,7 +93,7 @@ impl Player {
 
             let total_bh_influence = black_holes.iter().fold(Vector2::<Pixel>::ZERO, |acc, bh| acc + bh.influence(self.rect()));
             self.vel += total_bh_influence;
-            if total_bh_influence != Vector2::<Pixel>::ZERO {
+            if total_bh_influence != Vector2::ZERO {
                 let volume = (total_bh_influence.as_::<f32>().length() / 10.).clamp(0., 1.);
                 sounds.play_black_hole_pull(volume);
             }
@@ -103,7 +103,7 @@ impl Player {
         let per_subframe_x = self.vel.x / num_subframes as i32;
         let per_subframe_y = self.vel.y / num_subframes as i32;
         
-        self.pos += Vector2::<Pixel>::new(per_subframe_x, per_subframe_y);
+        self.pos += Vector2::new(per_subframe_x, per_subframe_y);
         
         let rem_x = self.vel.x % num_subframes as i32;
         let mut arr_x = vec![false; num_subframes as usize];
@@ -153,8 +153,8 @@ impl Player {
         };
 
         canvas.draw(PLAYER_IMAGE.get(), PixelDrawParams::default()
-            .dest::<Pixel>(self.pos - camera)
-            .atlas_rect::<Tile>((atlas_pos, Size2::<Tile>::ONE))
+            .dest(self.pos - camera)
+            .atlas_rect((atlas_pos, Size2::ONE))
             .z(2)
         );
 
@@ -167,11 +167,11 @@ impl Player {
             };
 
             canvas.draw(PLAYER_IMAGE.get(), PixelDrawParams::default()
-                .dest::<Pixel>(self.pos - camera)
-                .atlas_rect::<Tile>(atlas_rect.to_tuple())
+                .dest(self.pos - camera)
+                .atlas_rect(atlas_rect.to_tuple())
                 .angle(rotation)
-                .anchor::<Tile>(rot_pivot_tile)
-                .pivot::<Pixel>(rot_pivot_tile.to_pixel() + Vector2::splat(TILE_PIXELS / 2))
+                .anchor(rot_pivot_tile)
+                .pivot(rot_pivot_tile.to_pixel() + Vector2::splat(TILE_PIXELS / 2))
                 .z(2)
             );
 

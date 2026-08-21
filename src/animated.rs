@@ -39,9 +39,9 @@ impl Explosion {
 
         let atlas_rect = Rect::<Tile>::from_origin_and_size([ self.frame * 3, 0 ], [ 3, 3 ]);
 
-        canvas.draw(EXPLOSION_IMAGE.get(), PixelDrawParams::<Pixel>::default()
-            .dest::<Pixel>(self.pos - camera)
-            .atlas_rect::<Tile>(atlas_rect.to_tuple())
+        canvas.draw(EXPLOSION_IMAGE.get(), PixelDrawParams::default()
+            .dest(self.pos - camera)
+            .atlas_rect(atlas_rect.to_tuple())
             .z(3)
         );
 
@@ -126,9 +126,9 @@ impl Portal {
 
         let rect = self.rect();
 
-        canvas.draw(image, PixelDrawParams::<Pixel>::default()
-            .dest::<Pixel>(rect.origin.to_pixel() - camera)
-            .atlas_rect::<Tile>(([ atlas_x, 0 ], rect.size))
+        canvas.draw(image, PixelDrawParams::default()
+            .dest(rect.origin.to_pixel() - camera)
+            .atlas_rect(([ atlas_x, 0 ], rect.size))
             .z(3)
         );
 
@@ -189,8 +189,8 @@ impl BlackHole {
         let atlas_rect = Rect::new(Point2::new(self.frame * 3, 0), rect.size);
 
         canvas.draw(BLACK_HOLE_IMAGE.get(), PixelDrawParams::default()
-            .dest::<Pixel>(rect.origin.to_pixel() - camera)
-            .atlas_rect::<Tile>(atlas_rect.to_tuple())
+            .dest(rect.origin.to_pixel() - camera)
+            .atlas_rect(atlas_rect.to_tuple())
             .z(3)
         );
 

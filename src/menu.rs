@@ -11,7 +11,7 @@ use crate::sounds::AllSounds;
 use crate::{ FULL_FRAME_FPS, NUM_LEVELS, SCREEN_TILES };
 use crate::assets::LETTERS_IMAGE;
 
-pub type UIGrid = TileGrid::<LetterTile, {SCREEN_TILES.width as usize}, {SCREEN_TILES.height as usize}>;
+pub type UIGrid = TileGrid<LetterTile, {SCREEN_TILES.width as usize}, {SCREEN_TILES.height as usize}>;
 
 #[derive(Clone, Copy)]
 pub enum LetterTile {
