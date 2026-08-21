@@ -151,7 +151,7 @@ impl TitleMenu {
 
     }
 
-    pub fn draw(&self, sounds: &AllSounds, pixel_size: u8, number_subframes: u8, canvas: &mut PixelCanvas, gfx: &mut GraphicsContext) {
+    pub fn draw(&self, canvas: &mut PixelCanvas, gfx: &mut GraphicsContext, sounds: &AllSounds, pixel_size: u8, number_subframes: u8) {
 
         let s = self.selection;
         let ps = pixel_size;

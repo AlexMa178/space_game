@@ -42,6 +42,8 @@ pub const FULL_FRAME_FPS: u32 = 5;
 pub const TILE_PIXELS: i32 = 8;
 pub const SCREEN_TILES: Size2<Tile> = Size2::new(32, 18);
 pub const NUM_LEVELS: usize = 8;
+pub const PLAYER_SPAWN_WAIT: u8 = 4;
+pub const PLAYER_DIE_WAIT: u8 = 4;
 
 pub struct Tile;
 impl Unit for Tile {
@@ -98,14 +100,9 @@ fn main() -> GameResult {
 }
 
 enum PlayerExistence {
-    Exists {
-        player: Player,
-        timer: u64,
-    },
+    Exists { player: Player, timer: u64 },
     Wait { wait_counter: u8 },
-    LevelEnded {
-        final_time: u64,
-    },
+    LevelEnded { final_time: u64 },
 }
 
 struct PlayingState {
@@ -122,7 +119,7 @@ impl PlayingState {
     fn new(level_id: usize) -> Self {
         let level = LEVELS[ level_id ].get();
         Self {
-            maybe_player: PlayerExistence::Wait { wait_counter: 4 },
+            maybe_player: PlayerExistence::Wait { wait_counter: PLAYER_SPAWN_WAIT },
             maybe_explosion: None,
             portal: Portal::new(level.spawn_portal_pos),
             black_holes: level.spawn_black_holes_pos.iter().map(|pos| BlackHole::new(*pos)).collect(),
@@ -321,7 +318,7 @@ impl EventHandler for Game {
                         
                         self.sounds.play_explosion();
                         *maybe_explosion = Some(Explosion::new(player_pos));
-                        *maybe_player = PlayerExistence::Wait { wait_counter: 4 };
+                        *maybe_player = PlayerExistence::Wait { wait_counter: PLAYER_DIE_WAIT };
 
                     }
 
@@ -361,8 +358,6 @@ impl EventHandler for Game {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
 
-        let ns = self.num_subframes;
-
         let mut pixel_canvas = PixelCanvas::new(ctx, SCREEN_TILES);
 
         pixel_canvas.draw(BACKGROUND_IMAGE.get(), PixelDrawParams::<Pixel>::default());
@@ -370,7 +365,7 @@ impl EventHandler for Game {
         match &self.state {
             State::TitleMenu { menu } => {
 
-                menu.draw(&self.sounds, self.pixel_size, ns, &mut pixel_canvas, &mut ctx.gfx);
+                menu.draw(&mut pixel_canvas, &mut ctx.gfx, &self.sounds, self.pixel_size, self.num_subframes);
 
             },
             State::LevelSelectMenu { menu } => {
@@ -394,11 +389,11 @@ impl EventHandler for Game {
                     black_hole.draw(&mut pixel_canvas, *camera);
                 }
 
-                if let Some(time) = { match maybe_player {
+                if let Some(time) = match maybe_player {
                     PlayerExistence::Exists { timer, .. } => Some(timer),
                     PlayerExistence::Wait { .. } => None,
                     PlayerExistence::LevelEnded { final_time } => Some(final_time),
-                } } {
+                } {
                     
                     let time_string = { let decimal = time * 10 / FULL_FRAME_FPS as u64; format!("{}.{}", decimal / 10, decimal % 10) };
                     let text_grid = UIGrid::fill(LetterTile::Empty).builder(31 - time_string.len() as u8, 1).write(&time_string).build();
